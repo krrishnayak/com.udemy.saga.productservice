@@ -9,10 +9,10 @@
 		<version>2.5.4</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.udemy.saga</groupId>
-	<artifactId>com.udemy.saga.productservice</artifactId>
+	<groupId>org.krish.microservices.saga</groupId>
+	<artifactId>org.krish.microservices.saga.productservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>com.udemy.saga.productservice</name>
+	<name>Products Service</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
