@@ -7,12 +7,17 @@ import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
 import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
+import org.krish.microservices.saga.core.commands.ReserveProductCommand;
+import org.krish.microservices.saga.core.events.ProductReservedEvent;
 import org.krish.microservices.saga.productservice.core.events.ProductCreatedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 @Aggregate
 public class ProductAggregate {
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ProductAggregate.class);
+
 	@AggregateIdentifier
 	private String productId;
 	private String title;
@@ -39,6 +44,23 @@ public class ProductAggregate {
 		AggregateLifecycle.apply(event);
 		
 		//throw new Exception("Forced exception thrown from aggregate class");
+	}
+	
+	@CommandHandler
+	public ProductAggregate(ReserveProductCommand reserveProductCommand) {
+		
+		if(quantity < reserveProductCommand.getQuantity()) {
+			throw new IllegalArgumentException("Insufficient number of items in stock");
+		}
+		
+		ProductReservedEvent productReservedEvent = ProductReservedEvent.builder()
+				.orderId(reserveProductCommand.getOrderId())
+				.productId(reserveProductCommand.getProductId())
+				.quantity(reserveProductCommand.getQuantity())
+				.userId(reserveProductCommand.getUserId())
+				.build();
+		
+		AggregateLifecycle.apply(productReservedEvent);
 		
 	}
 	
@@ -49,5 +71,11 @@ public class ProductAggregate {
 		this.title = productCreatedEvent.getTitle();
 		this.quantity = productCreatedEvent.getQuantity();
 		
+	}
+	
+	@EventSourcingHandler
+	public void on(ProductReservedEvent productReservedEvent) {
+		this.quantity -= productReservedEvent.getQuantity();
+		LOGGER.info("Updated Quantity: " +quantity );
 	}
 }
